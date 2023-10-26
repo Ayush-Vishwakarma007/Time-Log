@@ -1,0 +1,22 @@
+{
+    "contributions": [
+        {
+            "id": "work-item-open-hub",
+            "type": "ms.vss-web.hub",
+            "targets": [
+                "ms.vss-work-web.work-hub-group"
+            ],
+            "properties": {
+                "name": "Summery of Time Log",
+                "uri": "dist/WorkItemOpen/WorkItemOpen.html",
+                "icon": {
+                    "light": "static/summery.png",
+                    "dark": "static/add-green.png"
+                }
+            }
+        }
+    ],
+    "scopes": [
+        "vso.work"
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "contributions": [
+        {
+            "id": "work-item-admin-hub",
+            "type": "ms.vss-web.hub",
+            "targets": [
+                "ms.vss-web.project-admin-hub-group"
+            ],
+            "properties": {
+                "name": "Admin of Time Log",
+                "order": 100,
+                "uri": "dist/WorkItemAdmin/WorkItemAdmin.html"
+            }
+        }
+    ],
+    "scopes": [
+        "vso.work"
+    ]
+}   

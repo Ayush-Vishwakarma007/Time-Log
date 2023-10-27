@@ -9,12 +9,15 @@ import * as SDK from "azure-devops-extension-sdk";
 import { Button } from "azure-devops-ui/Button";
 import * as React from "react";
 import { showRootComponent } from "../../Common";
+import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
+import { ObservableValue } from "azure-devops-ui/Core/Observable";
 
+const simpleObservable = new ObservableValue<string>("");
 interface WorkItemFormGroupComponentState {
   eventContent: string;
 }
 
-export class WorkItemFormGroupComponent extends React.Component<{},  WorkItemFormGroupComponentState> {
+export class WorkItemFormGroupComponent extends React.Component<any , any> {
   constructor(props: {}) {
     super(props);
     this.state = {
@@ -38,7 +41,13 @@ export class WorkItemFormGroupComponent extends React.Component<{},  WorkItemFor
           onClick={() => this.onClick()}
         >Click me to change title!</Button>
         <div className="sample-work-item-events">{this.state.eventContent}</div>
-      </div>
+        <TextField
+          inputType="number"
+          value={simpleObservable.value}
+          onChange={(e, newValue) => (simpleObservable.value = newValue)}
+          width={TextFieldWidth.standard}
+          />
+      </div>  
     );
   }
 

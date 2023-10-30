@@ -32,7 +32,6 @@ class WorkItemOpenContent extends React.Component<{}, {}> {
 
     public componentDidMount() {
         SDK.init();
-        this.loadWorkItemTypes();
     }
 
     public render(): JSX.Element {
@@ -41,7 +40,7 @@ class WorkItemOpenContent extends React.Component<{}, {}> {
                 <Header title="Work Item Open Sample" />
                 <div className="page-content">
                     <div className="sample-form-section flex-row flex-center">
-                        <TextField className="sample-work-item-id-input" label="Existing work item id" value={this.workItemIdValue} onChange={(ev, newValue) => { this.workItemIdValue.value = newValue; }} />
+                        <TextField inputType="number" className="sample-work-item-id-input" label="Existing work item id" value={this.workItemIdValue} onChange={(ev, newValue) => { this.workItemIdValue.value = newValue; }} />
                         <Button className="sample-work-item-button" text="Open..." onClick={() => this.onOpenExistingWorkItemClick()} />
                     </div>
                     <div className="sample-form-section flex-row flex-center">
@@ -61,26 +60,26 @@ class WorkItemOpenContent extends React.Component<{}, {}> {
         );
     }
 
-    private async loadWorkItemTypes(): Promise<void> {
+    // private async loadWorkItemTypes(): Promise<void> {
 
-        const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
-        const project = await projectService.getProject();
+    //     const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
+    //     const project = await projectService.getProject();
 
-        let workItemTypeNames: string[];
+    //     let workItemTypeNames: string[];
 
-        if (!project) {
-            workItemTypeNames = [ "Issue" ];
-        }
-        else {
-            const client = getClient(WorkItemTrackingRestClient);
-            const types = await client.getWorkItemTypes(project.name);
-            workItemTypeNames = types.map(t => t.name);
-            workItemTypeNames.sort((a, b) => localeIgnoreCaseComparer(a, b));
-        }
+    //     if (!project) {
+    //         workItemTypeNames = [ "Issue" ];
+    //     }
+    //     else {
+    //         const client = getClient(WorkItemTrackingRestClient);
+    //         const types = await client.getWorkItemTypes(project.name);
+    //         workItemTypeNames = types.map(t => t.name);
+    //         workItemTypeNames.sort((a, b) => localeIgnoreCaseComparer(a, b));
+    //     }
 
-        this.workItemTypes.push(...workItemTypeNames.map(t => { return { id: t, data: t, text: t } }));
-        this.selection.select(0);
-    }
+    //     this.workItemTypes.push(...workItemTypeNames.map(t => { return { id: t, data: t, text: t } }));
+    //     this.selection.select(0);
+    // }
 
     private async onOpenExistingWorkItemClick() {
         const navSvc = await SDK.getService<IWorkItemFormNavigationService>(WorkItemTrackingServiceIds.WorkItemFormNavigationService);

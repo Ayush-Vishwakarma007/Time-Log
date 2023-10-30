@@ -19,11 +19,9 @@ jest.mock('../../Common');
 describe('WorkItemFormGroup', () => {
 
     test('WorkItemFormGroupComponent - rendering', () => {
-
         render(<WorkItemFormGroupComponent />);
-        const textElement = screen.getByText(/Click me to change title!/i);
+        const textElement = screen.getByText(/Hours:/i);
         expect(textElement).toBeDefined();
-
     });
 
     // test('WorkItemFormGroupComponent - click button', async() => {

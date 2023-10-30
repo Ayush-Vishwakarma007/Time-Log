@@ -1,113 +1,94 @@
-import {
-  IWorkItemChangedArgs,
-  IWorkItemFieldChangedArgs,
-  IWorkItemFormService,
-  IWorkItemLoadedArgs,
-  WorkItemTrackingServiceIds
-} from "azure-devops-extension-api/WorkItemTracking";
+import React from "react";
 import * as SDK from "azure-devops-extension-sdk";
-import { Button } from "azure-devops-ui/Button";
-import * as React from "react";
-import { showRootComponent } from "../../Common";
-import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
+
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import { TextField, TextFieldStyle, TextFieldWidth } from "azure-devops-ui/TextField";
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 
-const simpleObservable = new ObservableValue<string>("");
+import './WorkItemFormGroup.scss';
+import { showRootComponent } from "../../Common";
+
 interface WorkItemFormGroupComponentState {
-  eventContent: string;
+  hours: string;
+  mins: string;
+  dateValue: Date;
 }
 
-export class WorkItemFormGroupComponent extends React.Component<any , any> {
+export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemFormGroupComponentState> {
+  private hours = new ObservableValue<string>("0");
+  private mins = new ObservableValue<string>("0");
+
   constructor(props: {}) {
     super(props);
     this.state = {
-      eventContent: ""
+      hours: "0",
+      mins: "0",
+      dateValue: new Date()
     };
   }
 
-  public contributionId = 'sample-work-item-form-page'
-
   public componentDidMount() {
-    SDK.init().then(() => {
-      this.registerEvents();
-    });
-  }
+    SDK.init();
+}
 
   public render(): JSX.Element {
     return (
-      <div>
-        <Button
-          className="sample-work-item-button"
-          onClick={() => this.onClick()}
-        >Click me to change title!</Button>
-        <div className="sample-work-item-events">{this.state.eventContent}</div>
+      <div className="time-input">
+        <label htmlFor="hours">Hours: </label>
         <TextField
+          autoAdjustHeight
+          maxLength={2}
+          autoFocus={true}
+          style={TextFieldStyle.inline}
+          className="input-hours"
           inputType="number"
-          value={simpleObservable.value}
-          onChange={(e, newValue) => (simpleObservable.value = newValue)}
+          inputId="hours"
+          value={this.state.hours}
+          onChange={this.onChangeHours}
           width={TextFieldWidth.standard}
-          />
-      </div>  
+        />
+        <label htmlFor="mins">Mins: </label>
+        <TextField
+          autoAdjustHeight
+          maxLength={2}
+          autoFocus={true}
+          style={TextFieldStyle.inline}
+          className="input-mins"
+          inputType="number"
+          inputId="mins"
+          value={this.state.mins}
+          onChange={this.onChangeMins}
+          width={TextFieldWidth.standard}
+        />
+        <DatePicker selected={this.state.dateValue} onChange={this.handleDateChange} />
+      </div>
     );
   }
 
-  private registerEvents() {
-    SDK.register(SDK.getContributionId(), () => {
-      return {
-        // Called when the active work item is modified
-        onFieldChanged: (args: IWorkItemFieldChangedArgs) => {
-          this.setState({
-            eventContent: `onFieldChanged - ${JSON.stringify(args)}`
-          });
-        },
+  private onChangeHours = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    newValue: string
+  ) => {
+    if (/^\d{0,2}$/.test(newValue) && parseInt(newValue) >= 0 && newValue.length === 1 && parseInt(newValue) <= 9) {
+      this.hours.value = newValue;
+      // Handle other logic related to hours here
+    }
+  };
 
-        // Called when a new work item is being loaded in the UI
-        onLoaded: (args: IWorkItemLoadedArgs) => {
-          this.setState({
-            eventContent: `onLoaded - ${JSON.stringify(args)}`
-          });
-        },
-
-        // Called when the active work item is being unloaded in the UI
-        onUnloaded: (args: IWorkItemChangedArgs) => {
-          this.setState({
-            eventContent: `onUnloaded - ${JSON.stringify(args)}`
-          });
-        },
-
-        // Called after the work item has been saved
-        onSaved: (args: IWorkItemChangedArgs) => {
-          this.setState({
-            eventContent: `onSaved - ${JSON.stringify(args)}`
-          });
-        },
-
-        // Called when the work item is reset to its unmodified state (undo)
-        onReset: (args: IWorkItemChangedArgs) => {
-          this.setState({
-            eventContent: `onReset - ${JSON.stringify(args)}`
-          });
-        },
-
-        // Called when the work item has been refreshed from the server
-        onRefreshed: (args: IWorkItemChangedArgs) => {
-          this.setState({
-            eventContent: `onRefreshed - ${JSON.stringify(args)}`
-          });
-        }
-      };
-    });
-  }
-
-  private async onClick() {
-    const workItemFormService = await SDK.getService<IWorkItemFormService>(
-      WorkItemTrackingServiceIds.WorkItemFormService
-    );
-    workItemFormService.setFieldValue(
-      "System.Title",
-      "Title set from your group extension!"
-    );
-  }
+  private onChangeMins = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    newValue: string
+  ) => {
+    if (/^\d{0,2}$/.test(newValue) && parseInt(newValue) >= 0 && parseInt(newValue) <= 59) {
+      this.mins.value = newValue;
+      // Handle other logic related to minutes here
+    }
+  };
+  private handleDateChange = (date: Date) => {
+    this.setState({ dateValue: date });
+    // Handle other logic related to the date here
+  };
 }
 
 export default WorkItemFormGroupComponent;

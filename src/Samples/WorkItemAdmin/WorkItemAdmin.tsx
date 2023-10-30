@@ -3,7 +3,7 @@ import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import { Page } from "azure-devops-ui/Page";
 
-class WorkItemAdminContent extends React.Component<{}, {}>{
+class WorkItemAdminConponent extends React.Component<{}, {}>{
     constructor(props: {}) {
         super(props);
     }
@@ -14,9 +14,14 @@ class WorkItemAdminContent extends React.Component<{}, {}>{
 
     public render(): JSX.Element{
         return(
-            <Page>Hello World !!!</Page>
+            <div>
+                Hello
+                <Page>Hello World !!!</Page>
+            </div>
         );
     }
 }
 
-showRootComponent(<WorkItemAdminContent/>)
+
+showRootComponent(<WorkItemAdminConponent/>)
+export default WorkItemAdminConponent

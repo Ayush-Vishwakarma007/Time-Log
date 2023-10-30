@@ -1,5 +1,29 @@
 @import "node_modules/azure-devops-ui/Core/_platformCommon.scss";
 
-.time-logs-hours-input{
-    width: 64px;
+.time-input {
+    margin-top: 15px;
+    display: flex;  
+    .input-hours,
+    .input-mins {
+      margin: 0 5px;
+      width: 50px
+    }
+  
+    label {
+      margin-right: 5px;
+    }
+  }
+.bolt-textfield-default-width {
+    width: 80px;
 }
+.bolt-textfield-input {
+    border: none;
+    outline: none;
+    background-color: inherit;
+    padding: 5px 11px;
+    resize: none;
+    width: 50px;
+}  
+  
+  
+  

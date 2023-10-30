@@ -43,9 +43,7 @@ module.exports = {
             },
             {
                 test: /\.woff$/,
-                use: [{
-                    loader: 'base64-inline-loader'
-                }]
+                type: 'asset/inline'
             },
             {
                 test: /\.html$/,

@@ -1,29 +1,62 @@
 @import "node_modules/azure-devops-ui/Core/_platformCommon.scss";
 
-.time-input {
-    margin-top: 15px;
-    display: flex;  
-    .input-hours,
-    .input-mins {
-      margin: 0 5px;
-      width: 50px
+.time-log-main{
+    width: 100%;
+    .time-input {
+      margin-top: 15px;
+      display: flex;  
+      height: 30px;
+      margin-left: 25px;
+      .input-hours,
+      .input-mins {
+        margin-left: 5px;
+      }
+    
+      label {
+        margin-right: 5px;
+        font-size: 15px;
+        font-weight: 500;
+      }
     }
-  
-    label {
-      margin-right: 5px;
-    }
+    .header-title {
+      height: 500px;
+      width: 100%;
+      max-height: 43px;
+      padding-bottom: 15px;
+      color: #be9201;
+      font-size: 29px;
   }
-.bolt-textfield-default-width {
-    width: 80px;
+  .bolt-textfield-default-width {
+      width: 65px;
+  }
+  .bolt-textfield-input {
+      border: none;
+      outline: none;
+      background-color: inherit;
+      padding: 5px 11px;
+      resize: none;
+      width: 50px;
+  }  
+
+  .react-datepicker-popper {
+    padding-top: 25px;
+  }
+
+  .clock-icon{
+    font-size: 40px;
+    color: #a79400;
+  }
+
+  .task-dropdown{
+    width: 100px;
+    margin-left: 5px;
+  }
+  .date-picker-input{
+    height: 2rem;
+    margin-left: 5px;
+  }
 }
-.bolt-textfield-input {
-    border: none;
-    outline: none;
-    background-color: inherit;
-    padding: 5px 11px;
-    resize: none;
-    width: 50px;
-}  
+
   
   
   

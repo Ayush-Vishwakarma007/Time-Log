@@ -7,16 +7,17 @@
       display: flex;  
       height: 30px;
       margin-left: 25px;
+      width: 60%;
       .input-hours,
       .input-mins {
         margin-left: 5px;
+        width: 50px;
       }
     
       label {
-        margin-right: 5px;
         font-size: 15px;
         font-weight: 500;
-        margin-left: 10px;
+        margin-left: 13px;
       }
     }
     .header-title {
@@ -27,9 +28,7 @@
       color: #be9201;
       font-size: 29px;
   }
-  .bolt-textfield-default-width {
-      width: 65px;
-  }
+
   .bolt-textfield-input {
       border: none;
       outline: none;
@@ -37,6 +36,7 @@
       padding: 5px 11px;
       resize: none;
       width: 50px;
+      height: 20px;
   }  
 
   .react-datepicker-popper {
@@ -44,18 +44,45 @@
   }
 
   .clock-icon{
-    font-size: 40px;
-    color: #a79400;
+    font-size: 37px;
+    color: #be9201;
   }
 
   .task-dropdown{
-    width: 100px;
+    width: 160px;
     margin-left: 5px;
+    .bolt-textfield{
+      width: 160px;
+    }
   }
   .date-picker-input{
-    height: 2rem;
+    height: 22px;
     margin-left: 5px;
+    width: 180px;
   }
+  .bolt-textfield{
+    height: 22px;
+  }
+  .comment-input {
+    margin-left: 5px;
+    width: 130px;
+  }
+  .add-time-log-btn{
+    height: 23px;
+    margin-left: 10px;
+    background-color: #e3e3e3;
+  }
+  .time-logs-list{
+    margin-top: 20px;
+  }
+}
+
+.trash-icon{
+  color: rgb(255, 66, 66);
+  font-size: 20px;
+  cursor: pointer;
+  margin: 10px 0;
+  line-height: 0;
 }
 
   

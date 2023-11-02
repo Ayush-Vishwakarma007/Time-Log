@@ -5,7 +5,6 @@ import "./WorkItemOpen.scss";
 
 import { Button } from "azure-devops-ui/Button";
 import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observable";
-import { localeIgnoreCaseComparer } from "azure-devops-ui/Core/Util/String";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
@@ -13,7 +12,6 @@ import { Header } from "azure-devops-ui/Header";
 import { Page } from "azure-devops-ui/Page";
 import { TextField } from "azure-devops-ui/TextField";
 
-import { CommonServiceIds, getClient, IProjectPageService } from "azure-devops-extension-api";
 import { IWorkItemFormNavigationService, WorkItemTrackingRestClient, WorkItemTrackingServiceIds } from "azure-devops-extension-api/WorkItemTracking";
 
 import { showRootComponent } from "../../Common";

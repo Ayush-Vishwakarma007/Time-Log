@@ -1,0 +1,40 @@
+.main-page{
+    width: 100%;
+    .page{ height: 100vh }
+    .admin-inputs{
+        display: flex;
+        margin-top: 20px;
+        margin-left: 20px;
+        .description-lable{
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .description-input{
+            margin-left: 15px;
+        }
+        .add-work-type-btn{
+            margin-left: 20px;
+        }
+    }
+    .bolt-header-no-spacing-defined {
+        padding-left: 20px;
+        padding-top: 16px;
+        padding-right: 20px;
+        padding-bottom: 16px;
+    }
+    .admin-icon{
+        font-size: 30px;
+        color: #545ffb;
+    }
+    
+}
+.admin-work-type-list{
+    margin-top: 30px;
+}
+.trash-icon{
+    color: rgb(255, 66, 66);
+    font-size: 20px;
+    cursor: pointer;
+    margin: 10px 0;
+    line-height: 0;
+  }

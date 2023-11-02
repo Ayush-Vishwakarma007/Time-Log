@@ -29,7 +29,8 @@
     "azure-devops-ui": "2.167.82",
     "react": "16.13.1",
     "react-datepicker": "^4.21.0",
-    "react-dom": "~16.13.1"
+    "react-dom": "~16.13.1",
+    "react-icons": "^4.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.21.8",

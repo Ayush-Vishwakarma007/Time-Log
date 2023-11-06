@@ -11,8 +11,6 @@ import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observabl
 
 import { FaRegCircleXmark } from "react-icons/fa6";
 
-
-import { Observer } from "azure-devops-ui/Observer";
 import { showRootComponent } from "../../Common";
 import { CustomHeader, HeaderTitleArea } from "azure-devops-ui/Header";
 import { Icon } from "azure-devops-ui/Icon";

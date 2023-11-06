@@ -15,11 +15,16 @@ import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Button } from "azure-devops-ui/Button";
 import { Card } from "azure-devops-ui/Card";
 import { ITableColumn, SimpleTableCell, Table, renderSimpleCell } from "azure-devops-ui/Table";
-import { tableItems } from "../WorkItemFormGroup/TableData";
+import { tableItems } from "./HeaderData";
 import { FaRegCircleXmark } from "react-icons/fa6";
+import { Checkbox } from "azure-devops-ui/Checkbox";
+
+
 
 class WorkItemAdminConponent extends React.Component<{}, {}>{
     private description = new ObservableValue<string>("");
+    private preventClosedItems = new ObservableValue<boolean>(false);
+    private preventNegativeTime = new ObservableValue<boolean>(false);
 
     constructor(props: {}) {
         super(props);
@@ -38,7 +43,7 @@ class WorkItemAdminConponent extends React.Component<{}, {}>{
                             <HeaderIcon className="bolt-table-status-icon-large" iconProps={{ render: this.renderStatus }} titleSize={TitleSize.Large}/>
                             <HeaderTitleArea>
                                 <HeaderTitleRow>
-                                    <HeaderTitle ariaLevel={3} className="text-ellipsis" titleSize={TitleSize.Large}>Admin panel for time logs</HeaderTitle>
+                                    <HeaderTitle ariaLevel={3} className="text-ellipsis" titleSize={TitleSize.Large}>Admin Panel For Time Logs</HeaderTitle>
                                 </HeaderTitleRow>
                                 <HeaderDescription>
                                     Last edited on 11/01/2023
@@ -51,6 +56,10 @@ class WorkItemAdminConponent extends React.Component<{}, {}>{
                         <label htmlFor="description-input" className="description-lable">Description: </label>
                         <TextField placeholder="Enter work type here" className="description-input" inputType="text" inputId="description-input" value={this.description} onChange={this.onChangeDescription} width={TextFieldWidth.standard}></TextField>
                         <Button className="add-work-type-btn" text="Add" iconProps={{ iconName: "Add" }} onClick={() => alert("API will be called to save data at this click!")}/>
+                    </div>
+                    <div className="admin-checkbox">
+                        <Checkbox onChange={(event, checked) => (this.preventClosedItems.value = checked)} checked={this.preventClosedItems} label="Prevent time logging to closed items"></Checkbox>
+                        <Checkbox onChange={(event, checked) => (this.preventNegativeTime.value = checked)} checked={this.preventNegativeTime} label="Prevent remaining time going negative"></Checkbox>
                     </div>
                     <div className="admin-work-type-list">
                         <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>

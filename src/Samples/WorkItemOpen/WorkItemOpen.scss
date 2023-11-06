@@ -1,21 +1,44 @@
 @import "node_modules/azure-devops-ui/Core/_platformCommon.scss";
 
-.sample-form-section {
-    margin-top: 20px;
+.main-page{
+    width: 100%;
+    .page{
+        height: 100vh;
+    }
+    .header-title{
+        margin-top: 10px;
+    }
+    .bolt-header-no-spacing-defined {
+        padding-left: 20px;
+        padding-top: 16px;
+        padding-right: 20px;
+        padding-bottom: 16px;
+    }
 }
-
-.sample-work-item-id-input {
-    width: 250px;
-    margin-right: 10px;
+.summary-icon{
+    font-size: 22px;
+    color: #efb917;
 }
-
-.sample-work-item-type-picker {
-    width: 250px;
-    margin-top: 8px;
-    margin-right: 10px;
-}
-
-.sample-work-item-button {
-    align-self: flex-end;
-    width: 80px;
+.summary-filter{
+    .team-details{
+        display: flex;
+        margin-top: 20px;
+        .team-lable{            
+            font-size: 15px;
+            font-weight: 500;
+            margin-left: 22px;
+        }
+        .team-dropdown{
+            width: 148px;
+            margin-left: 5px;
+        }
+        .date-picker-input{
+            height: 32px;
+            margin-left: 5px;
+            width: 130px;
+        }
+        .summary-search{
+            margin-left: 15px;
+        }
+    }
 }

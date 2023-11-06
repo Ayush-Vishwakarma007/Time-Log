@@ -2,6 +2,8 @@ import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
 import { ISimpleListCell } from "azure-devops-ui/List";
 import { MenuItemType } from "azure-devops-ui/Menu";
 import { ISimpleTableCell } from "azure-devops-ui/Table";
+import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
+import { ITableItem, rawTableItems } from "../WorkItemFormGroup/TableData";
 
 export const commandBarItemsSimple: IHeaderCommandBarItem[] = [
     {
@@ -46,11 +48,23 @@ export const commandBarItemsSimple: IHeaderCommandBarItem[] = [
 export const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
     {
         iconProps: {
-            iconName: "Download"
+            iconName: "Save"
         },
         id: "testSave",
         important: true,
         isPrimary: true,
+        disabled: true,
+        onActivate: () => {
+            alert("Example text");
+        },
+        text: "Save"
+    },
+    {
+        iconProps: {
+            iconName: "Download"
+        },
+        id: "testSave",
+        important: true,
         onActivate: () => {
             alert("Example text");
         },
@@ -58,7 +72,7 @@ export const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
     },
 ];
 
-export const rawTableItems: ITableItemWorkType[] = [
+export const rawTableItemsWorkType: ITableItemWorkType[] = [
     {
         type: 'Project Management',
     },
@@ -72,6 +86,8 @@ export const rawTableItems: ITableItemWorkType[] = [
         type: 'Quality Assurance',
     },
 ];
+export const tableItems = new ArrayItemProvider<ITableItemWorkType>(rawTableItemsWorkType);
+
 
 export interface ITableItemWorkType extends ISimpleTableCell {
     type: string;       

@@ -20,10 +20,16 @@ import { Button } from "azure-devops-ui/Button";
 import { Card } from "azure-devops-ui/Card";
 import { ColumnSorting, ITableColumn, SimpleTableCell, SortOrder, Table, renderSimpleCell, sortItems } from "azure-devops-ui/Table";
 import { ITableItem, rawTableItems} from './TableData';
+import axios from "axios";
+import { IProjectPageService, CommonServiceIds } from "azure-devops-extension-api";
+import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 
 interface WorkItemFormGroupComponentState {
   dateValue: Date;
   selectedDate: Date;
+  teamData: any;
+  extensionContext?: SDK.IExtensionContext;
+  host?: SDK.IHostContext;
 }
 
 export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemFormGroupComponentState> {
@@ -36,13 +42,25 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
     super(props);
     this.state = {
       dateValue: new Date(),
-      selectedDate: new Date()
+      selectedDate: new Date(),
+      teamData: [],
+      
     };
   }
 
-  public componentDidMount() {
-    SDK.init();
-  }
+  public async componentDidMount() {
+    try {
+        this.fetchData().then((teamData) => {
+            this.setState({ teamData });
+        }).catch((error) => {
+            console.error("Error fetching team data: ", error);
+        });
+        await SDK.init();
+        await SDK.ready();
+    } catch (error) {
+      console.error('Error during SDK initialization:', error);
+    }
+}
 
   private handleDateChange = (date: Date) => {
     this.setState({ selectedDate: date });
@@ -53,7 +71,49 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
     }
   };
 
+  private fetchData = async () => {
+    try {    
+        const accessToken = await SDK.getAccessToken();
+        const headers = {
+            Authorization: `Bearer ${accessToken}`
+        };
+        const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
+        const project = await projectService.getProject();  
+        const userName = SDK.getUser();
+        this.setState({
+            extensionContext: SDK.getExtensionContext(),
+            host: SDK.getHost()
+         });
+         axios.get(`https://dev.azure.com/${this.state.host.name}/_apis/projects/${project.id}/teams?api-version=7.1-preview.3`, { headers })
+         .then(response => {
+             console.log("TEAM DATA__: ", response);
+             const teamData = response.data.value;
+             this.setState({ teamData });
+         }).catch(error => {
+             console.error("Error fetching team data: ", error);
+         });
+         
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        if (error.response) {
+            console.error('Error response:', error.response.data);
+        } else if (error.request) {
+            console.error('No response received:', error.request);
+        } else {
+            console.error('Request setup error:', error.message);
+        }
+    }
+};
+
   public render(): JSX.Element {
+    const { teamData } = this.state;
+
+        if (!teamData || !teamData.length) {
+            return <div className="flex-row">
+                <div style={{ marginLeft: 4 }} />
+                <Spinner size={SpinnerSize.medium} />
+            </div>;
+        }
     return (
       <div className="time-log-main">
 
@@ -86,11 +146,10 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
             ariaLabel="Basic"
             className="task-dropdown"
             placeholder="Select an Option"
-            items={[
-              { id: "item1", text: "Item 1" },
-              { id: "item2", text: "Item 2" },
-              { id: "item3", text: "Item 3" }
-            ]}
+            items={teamData.map((team: { id: any; name: any; }) => ({
+              id: team.id,
+              text: team.name
+          }))}
             onSelect={this.onSelect}/>
             
             <label htmlFor="comment-input">Comment: </label>
@@ -135,8 +194,9 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
     }
   };
   private onSelect = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
-        this.selectedItem.value = item.text || "";
-  };
+    const selectedTeam = this.state.teamData.find((team: { id: string }) => team.id === item.id);
+    console.log("Selected Team:", selectedTeam);
+};
 
   private onChangeComment = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
     this.comment.value = newValue

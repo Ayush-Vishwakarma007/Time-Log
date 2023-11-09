@@ -48,19 +48,6 @@ export const commandBarItemsSimple: IHeaderCommandBarItem[] = [
 export const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
     {
         iconProps: {
-            iconName: "Save"
-        },
-        id: "testSave",
-        important: true,
-        isPrimary: true,
-        disabled: true,
-        onActivate: () => {
-            alert("Example text");
-        },
-        text: "Save"
-    },
-    {
-        iconProps: {
             iconName: "Download"
         },
         id: "testSave",
@@ -72,23 +59,24 @@ export const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
     },
 ];
 
-export const rawTableItemsWorkType: ITableItemWorkType[] = [
-    {
-        type: 'Project Management',
-    },
-    {
-        type: 'Development',
-    },
-    {
-        type: 'Business Analysis',
-    },
-    {
-        type: 'Quality Assurance',
-    },
-];
-export const tableItems = new ArrayItemProvider<ITableItemWorkType>(rawTableItemsWorkType);
+// export const rawTableItemsWorkType: ITableItemWorkType[] = [
+//     {
+//         type: 'Project Management',
+//     },
+//     {
+//         type: 'Development',
+//     },
+//     {
+//         type: 'Business Analysis',
+//     },
+//     {
+//         type: 'Quality Assurance',
+//     },
+// ];
+// export const tableItems = new ArrayItemProvider<ITableItemWorkType>(rawTableItemsWorkType);
 
 
 export interface ITableItemWorkType extends ISimpleTableCell {
+    id: number;
     type: string;       
 }

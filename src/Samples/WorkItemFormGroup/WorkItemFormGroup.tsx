@@ -23,11 +23,12 @@ import { ITableItem, rawTableItems} from './TableData';
 import axios from "axios";
 import { IProjectPageService, CommonServiceIds } from "azure-devops-extension-api";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
+import { API_BASE_URL } from "../../configuration";
 
 interface WorkItemFormGroupComponentState {
   dateValue: Date;
   selectedDate: Date;
-  teamData: any;
+  workType: any;
   extensionContext?: SDK.IExtensionContext;
   host?: SDK.IHostContext;
 }
@@ -43,15 +44,15 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
     this.state = {
       dateValue: new Date(),
       selectedDate: new Date(),
-      teamData: [],
+      workType: [],
       
     };
   }
 
   public async componentDidMount() {
     try {
-        this.fetchData().then((teamData) => {
-            this.setState({ teamData });
+        this.fetchData().then((workType) => {
+            this.setState({ workType });
         }).catch((error) => {
             console.error("Error fetching team data: ", error);
         });
@@ -84,11 +85,11 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
             extensionContext: SDK.getExtensionContext(),
             host: SDK.getHost()
          });
-         axios.get(`https://dev.azure.com/${this.state.host.name}/_apis/projects/${project.id}/teams?api-version=7.1-preview.3`, { headers })
+         axios.post(`${API_BASE_URL}/workType/getAllWorkType/${this.state.host.name}`, { headers })
          .then(response => {
              console.log("TEAM DATA__: ", response);
-             const teamData = response.data.value;
-             this.setState({ teamData });
+             const workType = response.data['data'];
+             this.setState({ workType });
          }).catch(error => {
              console.error("Error fetching team data: ", error);
          });
@@ -106,9 +107,9 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
 };
 
   public render(): JSX.Element {
-    const { teamData } = this.state;
+    const { workType } = this.state;
 
-        if (!teamData || !teamData.length) {
+        if (!workType || !workType.length) {
             return <div className="flex-row">
                 <div style={{ marginLeft: 4 }} />
                 <Spinner size={SpinnerSize.medium} />
@@ -146,9 +147,9 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
             ariaLabel="Basic"
             className="task-dropdown"
             placeholder="Select an Option"
-            items={teamData.map((team: { id: any; name: any; }) => ({
+            items={workType.map((team: { id: any; type: any; }) => ({
               id: team.id,
-              text: team.name
+              type: team.type
           }))}
             onSelect={this.onSelect}/>
             
@@ -194,7 +195,7 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
     }
   };
   private onSelect = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
-    const selectedTeam = this.state.teamData.find((team: { id: string }) => team.id === item.id);
+    const selectedTeam = this.state.workType.find((team: { id: string }) => team.id === item.id);
     console.log("Selected Team:", selectedTeam);
 };
 

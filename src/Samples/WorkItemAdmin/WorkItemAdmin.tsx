@@ -44,8 +44,8 @@ interface WorkItemFormGroupComponentState {
     extensionContext?: SDK.IExtensionContext;
     host?: SDK.IHostContext;
     disableSaveBtn: boolean;
-    preventClosedItems: ObservableValue<boolean>;
-    preventNegativeTime: ObservableValue<boolean>;
+    preventClosedItems: boolean;
+    preventNegativeTime: boolean;
     configs : any
   } 
 class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupComponentState>{
@@ -63,8 +63,8 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
         this.state = {
             workTypes: [],
             disableSaveBtn : true,
-            preventClosedItems: new ObservableValue<boolean>(false),
-            preventNegativeTime: new ObservableValue<boolean>(false),
+            preventClosedItems: false,
+            preventNegativeTime: false,
             configs: null
           };
     }
@@ -103,10 +103,25 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     }
 
     private getAllConfig = async () => {
-        await axios.get(`${API_BASE_URL}/configuration/getConfig/${this.state.host.name}`).then(response => {
-            console.log("ALL CONFIGS__: ", response);
-        })
+        const { host } = this.state;
+        
+        await axios.post(`${API_BASE_URL}/configuration/getConfiguration/${host?.name}`, { headers: { 'Content-Type': 'application/json' } })
+            .then(response => {
+                console.log("ALL CONFIGS__: ", response);
+                const configData = response.data['data'];
+                
+                if (configData.preventTimeLogin !== undefined && configData.preventRemainingTime !== undefined) {
+                    this.preventClosedItems.value = configData.preventTimeLogin;
+                    this.preventNegativeTime.value = configData.preventRemainingTime;
+                }
+    
+                this.setState({ preventClosedItems: configData.preventTimeLogin, preventNegativeTime: configData.preventRemainingTime });
+            })
+            .catch(error => {
+                console.error("Error fetching configuration: ", error);
+            });
     }
+    
 
     private onClickTrash = async (tableItem: ITableItemWorkType) => {
         try {
@@ -122,24 +137,34 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
 
 
     private onChangePreventClosedItems = (_event: React.MouseEvent<HTMLElement>, checked: boolean) => {
-        this.state.preventClosedItems.value = checked;
+        console.log("Check__: ", checked)
+        this.preventClosedItems.value = checked
+        this.setState({ preventClosedItems: checked });
         this.updateSaveButtonState();
     };
 
     private onChangePreventNegativeTime = (_event: React.MouseEvent<HTMLElement>, checked: boolean) => {
-        this.state.preventNegativeTime.value = checked;
+        this.preventNegativeTime.value = checked
+        this.setState({ preventNegativeTime: checked });
         this.updateSaveButtonState();
     };
     private updateSaveButtonState() {
-        const { preventClosedItems, preventNegativeTime } = this.state;
-        const disableSaveBtn = !preventClosedItems.value && !preventNegativeTime.value;
-        this.setState({ disableSaveBtn });
-    }
+        // const { preventClosedItems, preventNegativeTime } = this.state;
+        console.log("CLOSED__: ", this.preventClosedItems.value);
+        console.log("NEGATIVE__: ",this.preventNegativeTime.value);
+        let disableSaveBtn
+        if(this.preventClosedItems.value || this.preventNegativeTime.value){
+            disableSaveBtn = false
+        }else disableSaveBtn = true
+        this.setState({ disableSaveBtn: disableSaveBtn });
+    }      
 
     public render(): JSX.Element{
         const { workTypes } = this.state;
         const { disableSaveBtn } = this.state
         const { configs } = this.state
+        const { preventClosedItems } = this.state
+        const { preventNegativeTime } = this.state
         const formattedWorkTypes: ITableItemWorkType[] = workTypes.map((item: any) => ({
             id: item.id,
             type: item.type
@@ -219,8 +244,8 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                         <Button primary={true} disabled={disableSaveBtn} className="add-work-type-btn" text="Save" iconProps={{ iconName: "Save" }} onClick={this.onClickSave}/>
                     </div>
                     <div className="admin-checkbox">
-                        <Checkbox onChange={this.onChangePreventClosedItems} checked={this.state.preventClosedItems.value} label="Prevent time logging to closed items"></Checkbox>
-                        <Checkbox onChange={this.onChangePreventNegativeTime} checked={this.state.preventNegativeTime.value} label="Prevent remaining time going negative"></Checkbox>
+                        <Checkbox onChange={this.onChangePreventClosedItems} checked={preventClosedItems} label="Prevent time logging to closed items"></Checkbox>
+                        <Checkbox onChange={this.onChangePreventNegativeTime} checked={preventNegativeTime} label="Prevent remaining time going negative"></Checkbox>
                     </div>
                     <div className="admin-work-type-list">
                         <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>

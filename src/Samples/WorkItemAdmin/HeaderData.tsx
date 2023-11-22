@@ -1,9 +1,5 @@
 import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
-import { ISimpleListCell } from "azure-devops-ui/List";
-import { MenuItemType } from "azure-devops-ui/Menu";
 import { ISimpleTableCell } from "azure-devops-ui/Table";
-import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
-import { ITableItem, rawTableItems } from "../WorkItemFormGroup/TableData";
 
 export const commandBarItemsSimple: IHeaderCommandBarItem[] = [
     {

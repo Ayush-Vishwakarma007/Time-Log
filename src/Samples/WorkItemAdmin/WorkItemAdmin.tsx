@@ -128,7 +128,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
             const response = await axios.delete(`${API_BASE_URL}/workType/{id}?id=${tableItem.id}`);
             console.log("DELETE RESPONSE__: ", response);
             toast.success('Work type deleted successfully');
-            // Refresh the data after deletion
             this.getAllWorkType();
         } catch (error) {
             console.error(error);

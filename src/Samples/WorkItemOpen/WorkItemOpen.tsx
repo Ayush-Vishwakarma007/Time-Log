@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import "./WorkItemOpen.scss";
 import { CommonServiceIds, IProjectPageService } from "azure-devops-extension-api";
 
-import axios from 'axios';
+import axios, { all } from 'axios';
 import DatePicker from "react-datepicker";
 import { setHours, setMinutes } from "date-fns";
 import { Button } from "azure-devops-ui/Button";
@@ -21,19 +21,26 @@ import { showRootComponent } from "../../Common";
 import { FaFileAlt } from "react-icons/fa";
 import { HeaderCommandBar } from "azure-devops-ui/HeaderCommandBar";
 import { commandBarItemsSummary } from "./SummaryData";
+import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 
 interface WorkItemFormGroupComponentState {
     startDate: Date;
     selectedDate: Date;
     endDate: Date;
     teamData: any;
+    allUsers: any;
     extensionContext?: SDK.IExtensionContext;
     host?: SDK.IHostContext;
+    selectedTeam?: any;
+    currentUser:string
   }  
 class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponentState> {
     private selectedItem = new ObservableValue<string>("");
     private selectedTeamName = new ObservableValue<string>("");
+    private showTeam = new ObservableValue<boolean>(true)
     private teamData : any
+    private currentProject = new ObservableValue<string>('')
+
     constructor(props: {}) {
         super(props);
         this.state = {
@@ -41,6 +48,8 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             selectedDate: new Date(),
             endDate: this.calculateEndDate(new Date()),
             teamData: [],
+            allUsers: [],
+            currentUser:''
           };
     }
 
@@ -53,6 +62,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             });
             await SDK.init();
             await SDK.ready();
+            // await this.fetchAllUsers();
         } catch (error) {
           console.error('Error during SDK initialization:', error);
         }
@@ -78,11 +88,12 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
              .then(response => {
                  console.log("TEAM DATA__: ", response);
                  const teamData = response.data.value;
+                 this.currentProject.value = teamData.name
+                 this.setState({currentUser: teamData.name})
                  this.setState({ teamData });
              }).catch(error => {
                  console.error("Error fetching team data: ", error);
              });
-             
         } catch (error) {
             console.error('Error fetching data:', error);
             if (error.response) {
@@ -94,6 +105,30 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             }
         }
     };
+
+    private fetchAllUsers = async (selectedTeam: any) => {
+        try {
+            if (!selectedTeam) {
+                console.error('No selected team.');
+                return;
+            }
+    
+            const accessToken = await SDK.getAccessToken();
+            const headers = {
+                Authorization: `Bearer ${accessToken}`
+            };
+            const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
+            const project = await projectService.getProject();  
+            axios.get(`https://dev.azure.com/${this.state.host.name}/_apis/projects/${project.id}/teams/${selectedTeam.id}/members?api-version=7.1-preview.2`, {headers}).then(response => {
+                    const allUsers = response['data']['value']
+                    this.setState({allUsers})
+                    console.log("All Users__: ", response);
+            });
+        } catch (error) {
+            console.error("Error while fetching user details:", error);
+        }
+    }
+    
 
     private handleDateChange = (date: Date) => {
         this.setState({ selectedDate: date });
@@ -119,15 +154,15 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     };
 
     public render(): JSX.Element {
-        const { teamData } = this.state;
+        const { teamData, allUsers, currentUser } = this.state;
 
-        if (!teamData || !teamData.length) {
+        if ((!teamData)) {
             return <div className="flex-row">
                 <div style={{ marginLeft: 4 }} />
-                <Spinner size={SpinnerSize.medium} />
+                Loading...
             </div>;
         }
-
+        console.log("Render Team Data__: ", teamData)
         return (
             <div className="main-page">
                 <Page className="page flex-grow">
@@ -145,21 +180,29 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                     <div className="summary-filter">
                         <div className="team-details">
                             <label htmlFor="team-dropdown" className="team-lable">Team: </label>
-                            <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team"
+                            <TextField
+                            className="team-dropdown"
+                            inputType="text"
+                            inputId="hours"
+                            value={teamData.map((team:any) => team.name).join(', ')}
+                            width={TextFieldWidth.standard}
+                            disabled ={ true}
+                            />
+
+                            {/* <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team"
                                 items={teamData.map((team: { id: any; name: any; }) => ({
                                     id: team.id,
                                     text: team.name
                                 }))}
-                                onSelect={this.onTeamData}/>
+                                onSelect={this.onTeamData}/> */}
 
                             <label htmlFor="team-dropdown" className="team-lable">Team User: </label>
-                            <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team"
-                                items={[
-                                { id: "item1", text: "Item 1" },
-                                { id: "item2", text: "Item 2" },
-                                { id: "item3", text: "Item 3" }
-                                ]}
-                                onSelect={this.onSelect}/>
+                            <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team User"
+                                items={allUsers.map((team:any) => ({
+                                    id: team['identity'].id,
+                                    text: team['identity'].displayName
+                                }))}
+                                onSelect={this.onSelectUser}/>
 
                             <label htmlFor="date-picker" className="team-lable">From Date: </label>
                             <DatePicker className="date-picker-input" id="date-picker" selected={this.state.selectedDate} onChange={this.handleDateChange}
@@ -186,10 +229,18 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         const selectedTeam = this.teamData.find((team: { id: string; }) => team.id === item.id);
         console.log("Selected Team:", selectedTeam);
       };
-      // Example onSelect function
-      private onTeamData = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
+      
+    private onTeamData = async (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
         const selectedTeam = this.state.teamData.find((team: { id: string }) => team.id === item.id);
         console.log("Selected Team:", selectedTeam);
+        this.setState({selectedTeam});
+        this.showTeam.value = false;
+        await this.fetchAllUsers(selectedTeam);
+    };
+    private onSelectUser = async (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
+        const selectedUser = this.state.allUsers.find((team:any) => team['identity'].id === item.id);
+        console.log("Selected Team:", selectedUser);
+        // this.setState({selectedTeam});
     };
 
     private onSelectTeamName = (event: React.SyntheticEvent<HTMLElement>, item: any) => {

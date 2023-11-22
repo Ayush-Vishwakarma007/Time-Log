@@ -1,38 +1,38 @@
 {
-    "manifestVersion": 1,
-    "id": "TimeLog-TR",
-    "publisher": "TimeLog-TR",
-    "version": "1.0.523",
-    "name": "TimeLog",
-    "description": "Azure DevOps Extension",
-    "categories": [
-        "Azure Repos",
-        "Azure Boards",
-        "Azure Pipelines",
-        "Azure Test Plans",
-        "Azure Artifacts"
-    ],
-    "targets": [
-        {
-            "id": "Microsoft.VisualStudio.Services"
-        }
-    ],
-    "icons": {
-        "default": "logo.png"
+  "manifestVersion": 1,
+  "id": "TimeLog-TR",
+  "publisher": "TimeLog-TR",
+  "version": "1.0.167",
+  "name": "TimeLog",
+  "description": "Azure DevOps Extension",
+  "categories": [
+    "Azure Repos",
+    "Azure Boards",
+    "Azure Pipelines",
+    "Azure Test Plans",
+    "Azure Artifacts"
+  ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "icons": {
+    "default": "logo.png"
+  },
+  "content": {
+    "details": {
+      "path": "overview.md"
+    }
+  },
+  "files": [
+    {
+      "path": "static",
+      "addressable": true
     },
-    "content": {
-        "details": {
-            "path": "overview.md"
-        }
-    },
-    "files": [
-        {
-            "path": "static",
-            "addressable": true
-        },
-        {
-            "path": "dist",
-            "addressable": true
-        }
-    ]
+    {
+      "path": "dist",
+      "addressable": true
+    }
+  ]
 }

@@ -1,19 +1,15 @@
 {
-    "contributions": [
-        {  
-            "id": "sample-work-item-form-page",
-            "type": "ms.vss-work-web.work-item-form-page",
-            "description": "Custom time logs entry for TR - Testing",
-            "targets": [
-                "ms.vss-work-web.work-item-form"
-            ],
-            "properties": {
-                "name": "Time Logs",
-                "uri": "dist/WorkItemFormGroup/index.html"
-            } 
-        }
-    ],
-    "scopes": [
-        "vso.work"
-    ]
+  "contributions": [
+    {
+      "id": "sample-work-item-form-page",
+      "type": "ms.vss-work-web.work-item-form-page",
+      "description": "Custom time logs entry for TR - Testing",
+      "targets": ["ms.vss-work-web.work-item-form"],
+      "properties": {
+        "name": "Time Logs",
+        "uri": "dist/WorkItemFormGroup/index.html"
+      }
+    }
+  ],
+  "scopes": ["vso.work"]
 }

@@ -7,7 +7,7 @@
                 "ms.vss-work-web.work-hub-group"
             ],
             "properties": {
-                "name": "Summery of Time Log",
+                "name": "Time Log Summary",
                 "uri": "dist/WorkItemOpen/WorkItemOpen.html",
                 "icon": {
                     "light": "static/summery.png",

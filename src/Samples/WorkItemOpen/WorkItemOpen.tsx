@@ -3,6 +3,7 @@ import * as SDK from "azure-devops-extension-sdk";
 
 import 'react-datepicker/dist/react-datepicker.css';
 import "./WorkItemOpen.scss";
+import 'react-pivottable/pivottable.css';
 import { CommonServiceIds, IProjectPageService } from "azure-devops-extension-api";
 
 import axios, { all } from 'axios';
@@ -22,6 +23,11 @@ import { FaFileAlt } from "react-icons/fa";
 import { HeaderCommandBar } from "azure-devops-ui/HeaderCommandBar";
 import { commandBarItemsSummary } from "./SummaryData";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
+import PivotTable from 'react-pivottable/PivotTable';
+import { TableInput } from "react-pivottable";
+import { API_BASE_URL } from "../../configuration";
+import { PivotData } from "react-pivottable/Utilities";
+
 
 interface WorkItemFormGroupComponentState {
     startDate: Date;
@@ -32,8 +38,19 @@ interface WorkItemFormGroupComponentState {
     extensionContext?: SDK.IExtensionContext;
     host?: SDK.IHostContext;
     selectedTeam?: any;
-    currentUser:string
-  }  
+    currentUser:string;
+    userLogs?: any;
+    selectedUser?:any;
+    isLoading: boolean
+  }
+  interface RowData {
+    User: string;
+    Project: string;
+    Task: string;
+    'Work Type': string;
+    Week: string;
+    Days: string;
+}        
 class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponentState> {
     private selectedItem = new ObservableValue<string>("");
     private selectedTeamName = new ObservableValue<string>("");
@@ -49,7 +66,8 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             endDate: this.calculateEndDate(new Date()),
             teamData: [],
             allUsers: [],
-            currentUser:''
+            currentUser:'',
+            isLoading : false 
           };
     }
 
@@ -91,6 +109,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                  this.currentProject.value = teamData.name
                  this.setState({currentUser: teamData.name})
                  this.setState({ teamData });
+                 this.fetchAllUsers(teamData)
              }).catch(error => {
                  console.error("Error fetching team data: ", error);
              });
@@ -107,6 +126,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     };
 
     private fetchAllUsers = async (selectedTeam: any) => {
+        console.log("Selected Team__: ", selectedTeam[0])
         try {
             if (!selectedTeam) {
                 console.error('No selected team.');
@@ -119,7 +139,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             };
             const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
             const project = await projectService.getProject();  
-            axios.get(`https://dev.azure.com/${this.state.host.name}/_apis/projects/${project.id}/teams/${selectedTeam.id}/members?api-version=7.1-preview.2`, {headers}).then(response => {
+            axios.get(`https://dev.azure.com/${this.state.host.name}/_apis/projects/${project.id}/teams/${selectedTeam[0].id}/members?api-version=7.1-preview.2`, {headers}).then(response => {
                     const allUsers = response['data']['value']
                     this.setState({allUsers})
                     console.log("All Users__: ", response);
@@ -130,20 +150,27 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     }
     
 
-    private handleDateChange = (date: Date) => {
-        this.setState({ selectedDate: date });
+    private handleStartDateChange = (date: Date) => {
+        const endDate = this.calculateEndDate(date);
         this.setState({
-            startDate: date.getDate() === new Date().getDate()
-                ? setHours(setMinutes(new Date(), 0), 18)
-                : setHours(setMinutes(new Date(), 0), 0),
-            endDate: this.calculateEndDate(date)
+          startDate: date,
+          endDate: endDate,
+          selectedDate: endDate,
         });
-    };
-    private calculateEndDate = (startDate: Date) => {
+      };
+      
+      private handleDateChange = (date: Date) => {
+        this.setState({ selectedDate: date });
+      };
+      
+      private calculateEndDate = (startDate: Date) => {
         const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() - 15);
+        endDate.setDate(1);
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
         return endDate;
-    };
+      };
+    
     private handleEndDateChange = (date: Date) => {
         this.setState({ selectedDate: date });
         if (date.getDate() === new Date().getDate()) {
@@ -154,15 +181,74 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     };
 
     public render(): JSX.Element {
-        const { teamData, allUsers, currentUser } = this.state;
+        const { teamData, allUsers, currentUser, userLogs, isLoading } = this.state;
+        const generateRandomData = () => {
+            const users = ['User1', 'User2', 'User3'];
+            const projects = ['ProjectA']; // Only one project
+            const tasks = ['Task1', 'Task2', 'Task3'];
+            const workTypes = ['Design', 'Development', 'Testing'];
+
+            const data: any[] = [];
+
+            users.forEach((user) => {
+                projects.forEach((project) => {
+                tasks.forEach((task) => {
+                    workTypes.forEach((workType) => {
+                    const rowData: { [key: string]: string | number } = {
+                        User: user,
+                        Project: project,
+                        Task: task,
+                        'Work Type': workType,
+                    };
+
+                    let totalHours = 0;
+                    Array.from({ length: 7 }, (_, i) => {
+                        const hours = Math.floor(Math.random() * 8) + 1;
+                        rowData[`${i + 16} Wed`] = hours;
+                        totalHours += hours;
+                    });
+
+                    // rowData['Totals'] = totalHours;
+                    data.push(rowData);
+                    });
+                });
+                });
+            });
+            console.log("Random Data__: ", data)
+            return data;
+        };
+        const data = [
+            {
+                "attr1": 'value1_attr1',
+                "attr2": 'value1_attr2',
+                "attr3": 'value1_attr2'
+            },
+            {
+                "attr1": 'value2_attr1',
+                "attr2": 'value2_attr2',
+                "attr3": 'value2_attr2',
+            },
+            {
+                'Days' : '16 Wed'
+            },
+            {
+                'Days': '12 Thu'
+            }
+        ]
+              
+        const attributes = Object.keys(data[0]);
+        console.log("UserLogsRender__: ", userLogs);
+        const pivotTableData = this.state.userLogs;
+        // const rows = ['attr1']; // Add more attributes if needed
+        // const values = attributes.filter(attr => !rows.includes(attr));
+        const rows = ['User', 'Project', 'Task', 'Work Type'];
 
         if ((!teamData)) {
             return <div className="flex-row">
-                <div style={{ marginLeft: 4 }} />
+                <div style={{ marginLeft: 4 }}/>
                 Loading...
             </div>;
         }
-        console.log("Render Team Data__: ", teamData)
         return (
             <div className="main-page">
                 <Page className="page flex-grow">
@@ -179,7 +265,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                     </div>
                     <div className="summary-filter">
                         <div className="team-details">
-                            <label htmlFor="team-dropdown" className="team-lable">Team: </label>
+                            <label htmlFor="team-dropdown" className="team-lable">Project: </label>
                             <TextField
                             className="team-dropdown"
                             inputType="text"
@@ -188,35 +274,57 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                             width={TextFieldWidth.standard}
                             disabled ={ true}
                             />
-
-                            {/* <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team"
-                                items={teamData.map((team: { id: any; name: any; }) => ({
-                                    id: team.id,
-                                    text: team.name
-                                }))}
-                                onSelect={this.onTeamData}/> */}
-
-                            <label htmlFor="team-dropdown" className="team-lable">Team User: </label>
+                            <label htmlFor="team-dropdown" className="team-lable">Project User: </label>
                             <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team User"
                                 items={allUsers.map((team:any) => ({
                                     id: team['identity'].id,
                                     text: team['identity'].displayName
                                 }))}
                                 onSelect={this.onSelectUser}/>
-
                             <label htmlFor="date-picker" className="team-lable">From Date: </label>
-                            <DatePicker className="date-picker-input" id="date-picker" selected={this.state.selectedDate} onChange={this.handleDateChange}
-                            timeIntervals={1} dateFormat="MMMM d, yyyy"/>  
+                            <DatePicker
+                            maxDate={new Date()}
+                            className="date-picker-input"
+                            id="date-picker"
+                            selected={this.state.startDate}
+                            onChange={this.handleStartDateChange}
+                            timeIntervals={1}
+                            dateFormat="MMMM d, yyyy"
+                            />
                             <label htmlFor="date-picker" className="team-lable">To Date: </label>
-                            <DatePicker className="date-picker-input" id="date-picker" selected={this.state.endDate}  onChange={(date) => {}}
-                            timeIntervals={1} dateFormat="MMMM d, yyyy"/>
+                            <DatePicker
+                            maxDate={new Date()}
+                            className="date-picker-input"
+                            id="date-picker"
+                            selected={this.state.selectedDate}
+                            onChange={this.handleDateChange}
+                            timeIntervals={1}
+                            dateFormat="MMMM d, yyyy"
+                            />
                             <Button className="summary-search" text="Search" iconProps={{ iconName: "Play" }} onClick={this.onClickSearch}/>  
                         </div>
                     </div>
+                    {this.state.userLogs &&
+                        <div className="pivot-table-container">
+                            <div id="output"></div>
+                            <PivotTable
+                            rows={rows}
+                            cols={["Week", "Days"]}
+                            aggregatorName="Sum"
+                            rendererName="Table"
+                            data={pivotTableData}
+                            />
+                        </div>
+                    }
                 </Page>
+                {isLoading && <Spinner className="spinner" size={SpinnerSize.medium} />}
             </div>
         );
     }
+    private handlePivotTableChange = (s: any) => {
+        this.setState(s);
+    };
+
     private renderStatus = (className?: string) => {
         return (
             <div className="summary-icon">
@@ -240,17 +348,115 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     private onSelectUser = async (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
         const selectedUser = this.state.allUsers.find((team:any) => team['identity'].id === item.id);
         console.log("Selected Team:", selectedUser);
-        // this.setState({selectedTeam});
+        const userName = selectedUser['identity']['displayName'];
+        this.setState({selectedUser: userName})
     };
 
     private onSelectTeamName = (event: React.SyntheticEvent<HTMLElement>, item: any) => {
         console.log("Item__: ", item)
         this.selectedTeamName.value = item.name || "";
     };
-    private onClickSearch = () => {
-        console.log("Search button clicked");
-        console.log("TEAM DATA__: ", this.state.teamData)
+
+    private transformApiData = (apiData: any) => {
+        const transformedData: RowData[] = [];
+
+            if (apiData.userLogs.length > 0) {
+                apiData.userLogs.forEach((userLog:any) => {
+                    userLog.workItemLogs.forEach((workItemLog:any) => {
+                        workItemLog.workTypeLogs.forEach((workTypeLog:any) => {
+                            const rowData: RowData = {
+                                User: userLog.userName,
+                                Project: userLog.projectName,
+                                Task: workItemLog.workItem,
+                                'Work Type': workTypeLog.workType,
+                                Week: null,
+                                Days: null
+                            };        
+                            transformedData.push(rowData);
+                        });
+                    });
+                });                
+            }
+
+            let allDays_: any[] = [];
+            apiData.logsDate.forEach((logsDate: any) => {
+                if (logsDate.startDate) {
+                    let week
+                    if(logsDate.logDays.length>0){
+                        week = logsDate.startDate
+                        const days = logsDate.logDays.map((logDay: any) => logDay.day);
+                        allDays_ = allDays_.concat(days);
+                    }else{ week = null } 
+                    console.log("Days__: ", logsDate)    
+                    const rowDataWithWeek: RowData = {
+                        User: '', 
+                        Project: '', 
+                        Task: '',
+                        'Work Type': '', 
+                        Week: week,
+                        Days: logsDate.logDays.map((logDay: any) => logDay.day),
+                    };                    
+                    transformedData.push(rowDataWithWeek);
+                }
+            });
+            // console.log("Final All Days: ", allDays_);
+            // if(allDays_.length > 0){
+            //     allDays_.forEach(day => {
+            //         const rowDataWithDay: RowData = {
+            //             User: '', 
+            //             Project: '', 
+            //             Task: '', 
+            //             'Work Type': '', 
+            //             Week: '',
+            //             Days: day
+            //         };  
+            //         transformedData.push(rowDataWithDay)
+            //     });
+            // }          
+            
+        return transformedData;
+    };
+    private onClickSearch = async () => {
+        this.setState({ isLoading: true });
+
+        const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
+        const project = await projectService.getProject();
+        const userName = SDK.getUser();
+        console.log("UserName__: ", this.state.selectedUser);
+        console.log("Project Details__: ", project);
+    
+        // Format the dates here
+        const formattedStartDate = this.formatDate(this.state.startDate);
+        const formattedEndDate = this.formatDate(this.state.endDate);
+        
+        const request = {
+            endDate: formattedEndDate,
+            projectTeam: project.id,
+            startDate: formattedStartDate,
+            userName: this.state.selectedUser
+        };
+
+        try {
+            axios.post(`${API_BASE_URL}/timelogs/getTimeLogSummary/${this.state.host.name}`, request).then(response => {
+                console.log("Search Response__: ", this.transformApiData(response.data.data));
+                if(response.data.status.code === 200){
+                    const transformedData = this.transformApiData(response.data.data);
+                    this.setState({userLogs: transformedData});
+                }
+            });   
+        } catch (error) {
+            console.error(error)
+        }finally{
+            this.setState({ isLoading: false });
+        }
+    }    
+
+    private formatDate(dateString: Date) {
+        const date = new Date(dateString);
+        const options: Intl.DateTimeFormatOptions = { month: '2-digit', day: '2-digit', year: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
     }
+    
     
 }
 

@@ -1,4 +1,5 @@
 import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
+import axios, { all } from 'axios';
 
 
 export const commandBarItemsSummary: IHeaderCommandBarItem[] = [
@@ -10,7 +11,9 @@ export const commandBarItemsSummary: IHeaderCommandBarItem[] = [
         important: true,
         isPrimary: true,
         onActivate: () => {
-            alert("Example text");
+            const req = {
+                
+            }
         },
         text: "Download All Logs"
     },

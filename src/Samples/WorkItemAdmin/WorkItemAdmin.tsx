@@ -2,18 +2,16 @@ import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import axios from 'axios';
 
-
 import "./WorkItemAdmin.scss"
 import 'react-toastify/dist/ReactToastify.css';
-import { API_BASE_URL } from '../../configuration'
-
+import { API_BASE_URL } from '../../configuration';
 
 import { FaUserCircle } from "react-icons/fa";
 import { showRootComponent } from "../../Common";
 import { Page } from "azure-devops-ui/Page";
 import { ITableItemWorkType } from "./HeaderData";
 import { CustomHeader, HeaderDescription, HeaderIcon, HeaderTitle, HeaderTitleArea, HeaderTitleRow, TitleSize } from "azure-devops-ui/Header";
-import { HeaderCommandBar, IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
+import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Button } from "azure-devops-ui/Button";
@@ -22,7 +20,6 @@ import { ITableColumn, SimpleTableCell, Table, renderSimpleCell } from "azure-de
 import { FaRegCircleXmark } from "react-icons/fa6";
 import { Checkbox } from "azure-devops-ui/Checkbox";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
-import { Toast } from "azure-devops-ui/Toast";
 import { ToastContainer, toast } from 'react-toastify';
 
 const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
@@ -46,7 +43,8 @@ interface WorkItemFormGroupComponentState {
     disableSaveBtn: boolean;
     preventClosedItems: boolean;
     preventNegativeTime: boolean;
-    configs : any
+    configs : any;
+    lastUpdated?: any;
   } 
 class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupComponentState>{
     private description = new ObservableValue<string>("");
@@ -54,9 +52,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     private preventNegativeTime = new ObservableValue<boolean>(false);
     private isToastVisible = new ObservableValue<boolean>(false);
     private isToastFadingOut = new ObservableValue<boolean>(false);
-    private allWorkType = new ObservableValue<any>('')
-    private toastRef: React.RefObject<Toast> = React.createRef<Toast>();
-    private disableSaveBtn : boolean = true
 
     constructor(props: {}) {
         super(props);
@@ -93,9 +88,7 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
          });
         await axios.post(`${API_BASE_URL}/workType/getAll?organizationName=${this.state.host.name}`, request)
             .then(response => {
-                console.log("ALL WORK TYPES__: ", response);
                 const workTypes = response.data['data']['content'];
-                this.allWorkType = workTypes
                 this.setState({ workTypes });
             }).catch(error => {
                 console.error("Error fetching work types: ", error);
@@ -104,29 +97,30 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
 
     private getAllConfig = async () => {
         const { host } = this.state;
-        
+    
         await axios.post(`${API_BASE_URL}/configuration/getConfiguration/${host?.name}`, { headers: { 'Content-Type': 'application/json' } })
             .then(response => {
-                console.log("ALL CONFIGS__: ", response);
                 const configData = response.data['data'];
-                
                 if (configData.preventTimeLogin !== undefined && configData.preventRemainingTime !== undefined) {
                     this.preventClosedItems.value = configData.preventTimeLogin;
                     this.preventNegativeTime.value = configData.preventRemainingTime;
                 }
     
-                this.setState({ preventClosedItems: configData.preventTimeLogin, preventNegativeTime: configData.preventRemainingTime });
+                const lastUpdated = new Date(configData.updatedDate);
+                const formattedLastUpdated = lastUpdated.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    
+                this.setState({ preventClosedItems: configData.preventTimeLogin, preventNegativeTime: configData.preventRemainingTime, lastUpdated: formattedLastUpdated });
             })
             .catch(error => {
                 console.error("Error fetching configuration: ", error);
             });
     }
     
+    
 
     private onClickTrash = async (tableItem: ITableItemWorkType) => {
         try {
             const response = await axios.delete(`${API_BASE_URL}/workType/{id}?id=${tableItem.id}`);
-            console.log("DELETE RESPONSE__: ", response);
             toast.success('Work type deleted successfully');
             this.getAllWorkType();
         } catch (error) {
@@ -136,7 +130,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
 
 
     private onChangePreventClosedItems = (_event: React.MouseEvent<HTMLElement>, checked: boolean) => {
-        console.log("Check__: ", checked)
         this.preventClosedItems.value = checked
         this.setState({ preventClosedItems: checked });
         this.updateSaveButtonState();
@@ -149,8 +142,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     };
     private updateSaveButtonState() {
         // const { preventClosedItems, preventNegativeTime } = this.state;
-        console.log("CLOSED__: ", this.preventClosedItems.value);
-        console.log("NEGATIVE__: ",this.preventNegativeTime.value);
         let disableSaveBtn
         if(this.preventClosedItems.value || this.preventNegativeTime.value){
             disableSaveBtn = false
@@ -159,9 +150,8 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     }      
 
     public render(): JSX.Element{
-        const { workTypes } = this.state;
+        const { workTypes, lastUpdated } = this.state;
         const { disableSaveBtn } = this.state
-        const { configs } = this.state
         const { preventClosedItems } = this.state
         const { preventNegativeTime } = this.state
         const formattedWorkTypes: ITableItemWorkType[] = workTypes.map((item: any) => ({
@@ -197,6 +187,20 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                 width: new ObservableValue(-90),
             },
         ];
+
+        const commandBarItemsAdvanced_: IHeaderCommandBarItem[] = [
+            {
+                iconProps: {
+                    iconName: "Download"
+                },
+                id: "testSave",
+                important: true,
+                onActivate: () => {
+                    alert("Example text");
+                },
+                text: "Download All Logs"
+            },
+        ];
     
 
         const renderNameColumn = (
@@ -230,10 +234,10 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                                     <HeaderTitle ariaLevel={3} className="text-ellipsis" titleSize={TitleSize.Large}>Admin Panel For Time Logs</HeaderTitle>
                                 </HeaderTitleRow>
                                 <HeaderDescription>
-                                    Last edited on 11/01/2023
+                                    Last edited on {lastUpdated}
                                 </HeaderDescription>
                             </HeaderTitleArea>
-                            <HeaderCommandBar items={commandBarItemsAdvanced}/>
+                            {/* <HeaderCommandBar items={commandBarItemsAdvanced_}/> */}
                         </CustomHeader>
                     </div>
                     <div className="admin-inputs">
@@ -249,12 +253,12 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                     <div className="admin-work-type-list">
                         <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                             <Table<ITableItemWorkType> 
-                            ariaLabel="Table with sorting"
-                            className="table-example"
-                            columns={columns}
-                            containerClassName="h-scroll-auto"
-                            itemProvider={itemProvider}
-                            role="table"
+                                ariaLabel="Table with sorting"
+                                className="table-example"
+                                columns={columns}
+                                containerClassName="h-scroll-auto"
+                                itemProvider={itemProvider}
+                                role="table"
                             />
                             <ToastContainer closeButton={false} position="bottom-right" />
                         </Card>
@@ -276,13 +280,7 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
         this.description.value = newValue
     }
 
-
-    private deleteData = () => {
-        
-    }
-
     private onClickAdd = async () =>{
-        console.log()
         const allWorkTypes = this.state.workTypes.map((item:any) => item.type);
         const host = SDK.getHost();
 
@@ -309,7 +307,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     }
 
     private onClickSave = async () =>{
-        console.log("Save button clicked");
         this.setState({
             disableSaveBtn: false
         })
@@ -319,7 +316,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
             preventTimeLogin: this.preventClosedItems.value
         }
         axios.post(`${API_BASE_URL}/configuration/updateConfig`,request).then(response => {
-            console.log("RESPONSE__: ", response)
             toast.success(`Configuration saved sucessfully`)
         }).catch(error => console.log(error))
     }

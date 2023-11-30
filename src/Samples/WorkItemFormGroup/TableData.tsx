@@ -3,8 +3,6 @@ import { ISimpleListCell } from "azure-devops-ui/List";
 import { ISimpleTableCell } from "azure-devops-ui/Table";
 import { css } from "azure-devops-ui/Util";
 import { Status, Statuses, StatusSize } from "azure-devops-ui/Status";
-import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
-
 
 export interface ITableItem extends ISimpleTableCell {
     time: string;

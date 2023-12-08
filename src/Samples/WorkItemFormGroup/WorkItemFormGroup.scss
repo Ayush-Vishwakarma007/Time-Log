@@ -88,6 +88,31 @@
   line-height: 0;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.pagination button {
+  background-color: #f1f1f1;
+  color: rgb(27, 27, 27);
+  border: none;
+  padding: 5px 10px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:hover {
+  background-color: #d6d6d6;
+}
+
+.pagination button.active {
+  background-color: #d6d6d6;
+}
+
   
   
   

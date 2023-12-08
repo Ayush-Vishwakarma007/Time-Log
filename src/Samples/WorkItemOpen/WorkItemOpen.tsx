@@ -58,7 +58,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         this.state = {
             startDate: new Date(),
             selectedDate: new Date(),
-            endDate: this.calculateEndDate(new Date()),
+            endDate: new Date(),
             teamData: [],
             allUsers: [],
             currentUser:'',
@@ -140,8 +140,6 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         const endDate = this.calculateEndDate(date);
         this.setState({
           startDate: date,
-          endDate: endDate,
-          selectedDate: endDate,
         });
       };
       
@@ -149,12 +147,13 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         this.setState({ selectedDate: date });
       };
       
-      private calculateEndDate = (startDate: Date) => {
-        const endDate = new Date(startDate);
-        endDate.setDate(1);
-        endDate.setMonth(endDate.getMonth() + 1);
-        endDate.setDate(endDate.getDate() - 1);
-        return endDate;
+      private calculateEndDate = (endDate: Date) => {
+        // const endDate = new Date(endDate);
+        this.setState({endDate})
+        // endDate.setDate(1);
+        // endDate.setMonth(endDate.getMonth() + 1);
+        // endDate.setDate(endDate.getDate() - 1);
+        // return endDate;
       };
     
     private handleEndDateChange = (date: Date) => {
@@ -412,9 +411,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         const date = new Date(dateString);
         const options: Intl.DateTimeFormatOptions = { month: '2-digit', day: '2-digit', year: 'numeric' };
         return date.toLocaleDateString('en-US', options);
-    }
-    
-    
+    }     
 }
 
 showRootComponent(<WorkItemOpenContent />);

@@ -4,23 +4,28 @@ import axios from 'axios';
 
 import "./WorkItemAdmin.scss"
 import 'react-toastify/dist/ReactToastify.css';
+import 'react-datepicker/dist/react-datepicker.css';
+
 import { API_BASE_URL } from '../../configuration';
 
 import { FaUserCircle } from "react-icons/fa";
+import DatePicker from "react-datepicker";
 import { showRootComponent } from "../../Common";
 import { Page } from "azure-devops-ui/Page";
 import { ITableItemWorkType } from "./HeaderData";
 import { CustomHeader, HeaderDescription, HeaderIcon, HeaderTitle, HeaderTitleArea, HeaderTitleRow, TitleSize } from "azure-devops-ui/Header";
-import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
+import { HeaderCommandBar, IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Button } from "azure-devops-ui/Button";
 import { Card } from "azure-devops-ui/Card";
 import { ITableColumn, SimpleTableCell, Table, renderSimpleCell } from "azure-devops-ui/Table";
 import { FaRegCircleXmark } from "react-icons/fa6";
-import { Checkbox } from "azure-devops-ui/Checkbox";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { ToastContainer, toast } from 'react-toastify';
+import { Observer } from "azure-devops-ui/Observer";
+import { CustomDialog } from "azure-devops-ui/Dialog";
+import { PanelContent, PanelFooter } from "azure-devops-ui/Panel";
 
 const commandBarItemsAdvanced: IHeaderCommandBarItem[] = [
     {
@@ -45,6 +50,9 @@ interface WorkItemFormGroupComponentState {
     preventNegativeTime: boolean;
     configs : any;
     lastUpdated?: any;
+    startDate: Date;
+    selectedDate: Date;
+    endDate: Date;
   } 
 class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupComponentState>{
     private description = new ObservableValue<string>("");
@@ -52,16 +60,20 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
     private preventNegativeTime = new ObservableValue<boolean>(false);
     private isToastVisible = new ObservableValue<boolean>(false);
     private isToastFadingOut = new ObservableValue<boolean>(false);
+    private isDialogOpen = new ObservableValue<boolean>(false);
 
     constructor(props: {}) {
         super(props);
         this.state = {
+            startDate: new Date(),
+            selectedDate: new Date(),
+            endDate: this.calculateEndDate(new Date()),
             workTypes: [],
             disableSaveBtn : true,
             preventClosedItems: false,
             preventNegativeTime: false,
             configs: null
-          };
+        };
     }
 
     public async componentDidMount() {
@@ -71,7 +83,7 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
         await this.getAllConfig();
     }
 
-    private getAllWorkType = async () => {
+    private getAllWorkType = async () =>{
         let request = {
             page: {
                 limit: 10,
@@ -104,8 +116,7 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                 if (configData.preventTimeLogin !== undefined && configData.preventRemainingTime !== undefined) {
                     this.preventClosedItems.value = configData.preventTimeLogin;
                     this.preventNegativeTime.value = configData.preventRemainingTime;
-                }
-    
+                }    
                 const lastUpdated = new Date(configData.updatedDate);
                 const formattedLastUpdated = lastUpdated.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     
@@ -128,7 +139,6 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
         }
     };
 
-
     private onChangePreventClosedItems = (_event: React.MouseEvent<HTMLElement>, checked: boolean) => {
         this.preventClosedItems.value = checked
         this.setState({ preventClosedItems: checked });
@@ -140,6 +150,7 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
         this.setState({ preventNegativeTime: checked });
         this.updateSaveButtonState();
     };
+
     private updateSaveButtonState() {
         // const { preventClosedItems, preventNegativeTime } = this.state;
         let disableSaveBtn
@@ -147,7 +158,50 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
             disableSaveBtn = false
         }else disableSaveBtn = true
         this.setState({ disableSaveBtn: disableSaveBtn });
-    }      
+    } 
+    
+    private handleStartDateChange = (date: Date) => {
+        const endDate = this.calculateEndDate(date);
+        this.setState({
+          startDate: date,
+          endDate: endDate,
+          selectedDate: endDate,
+        });
+      };
+      
+      private handleDateChange = (date: Date) => {
+        this.setState({ selectedDate: date });
+      };
+
+      private onDownloadExcel = () => {
+        const formattedStartDate = this.formatDate(this.state.startDate);
+        const formattedEndDate = this.formatDate(this.state.endDate);
+        const request = {
+            endDate: formattedEndDate,
+            startDate: formattedStartDate
+        }
+        console.log("Date__: ", request)
+        axios.post(`${API_BASE_URL}/timelogs/excel/organization/${this.state.host.name}`, request, { responseType: 'blob' }).then(response => {
+            const blob = new Blob([response.data], { type: response.headers['content-type'] });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);        
+            link.download = `${request.startDate}_TimeLogs.xlsx`;
+            document.body.appendChild(link);        
+            link.click();        
+            document.body.removeChild(link);
+        })
+        .catch(error => {
+            console.error('Error downloading file', error);
+        });
+      }
+      
+      private calculateEndDate = (startDate: Date) => {
+        const endDate = new Date(startDate);
+        endDate.setDate(1);
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+        return endDate;
+      };
 
     public render(): JSX.Element{
         const { workTypes, lastUpdated } = this.state;
@@ -188,6 +242,10 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
             },
         ];
 
+        const onDismiss = () => {
+            this.isDialogOpen.value = false;
+        };
+
         const commandBarItemsAdvanced_: IHeaderCommandBarItem[] = [
             {
                 iconProps: {
@@ -196,12 +254,11 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                 id: "testSave",
                 important: true,
                 onActivate: () => {
-                    alert("Example text");
+                    this.isDialogOpen.value = true;
                 },
                 text: "Download All Logs"
             },
-        ];
-    
+        ];    
 
         const renderNameColumn = (
             rowIndex: number,
@@ -237,19 +294,19 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                                     Last edited on {lastUpdated}
                                 </HeaderDescription>
                             </HeaderTitleArea>
-                            {/* <HeaderCommandBar items={commandBarItemsAdvanced_}/> */}
+                            <HeaderCommandBar items={commandBarItemsAdvanced_}/>
                         </CustomHeader>
                     </div>
                     <div className="admin-inputs">
-                        <label htmlFor="description-input" className="description-lable">Description: </label>
+                        <label htmlFor="description-input" className="description-lable">Work Type: </label>
                         <TextField placeholder="Enter work type here" className="description-input" inputType="text" inputId="description-input" value={this.description} onChange={this.onChangeDescription} width={TextFieldWidth.standard}></TextField>
                         <Button className="add-work-type-btn" text="Add" iconProps={{ iconName: "Add" }} onClick={this.onClickAdd}/>
-                        <Button primary={true} disabled={disableSaveBtn} className="add-work-type-btn" text="Save" iconProps={{ iconName: "Save" }} onClick={this.onClickSave}/>
+                        {/* <Button primary={true} disabled={disableSaveBtn} className="add-work-type-btn" text="Save" iconProps={{ iconName: "Save" }} onClick={this.onClickSave}/> */}
                     </div>
-                    <div className="admin-checkbox">
+                    {/* <div className="admin-checkbox">
                         <Checkbox onChange={this.onChangePreventClosedItems} checked={preventClosedItems} label="Prevent time logging to closed items"></Checkbox>
                         <Checkbox onChange={this.onChangePreventNegativeTime} checked={preventNegativeTime} label="Prevent remaining time going negative"></Checkbox>
-                    </div>
+                    </div> */}
                     <div className="admin-work-type-list">
                         <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                             <Table<ITableItemWorkType> 
@@ -262,6 +319,64 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                             />
                             <ToastContainer closeButton={false} position="bottom-right" />
                         </Card>
+                    </div>
+                    <div className="download-dialog">
+                    <Observer isDialogOpen={this.isDialogOpen}>
+                    {(props: { isDialogOpen: boolean }) => {
+                        return props.isDialogOpen ? (
+                            <CustomDialog onDismiss={onDismiss} modal={true}>
+                                <CustomHeader className="bolt-header-with-commandbar" separator>
+                                    <HeaderTitleArea>
+                                        <div
+                                            className="flex-grow scroll-hidden"
+                                            style={{ marginRight: "16px" }}
+                                        >
+                                            <div
+                                                className="title-m"
+                                                style={{
+                                                    height: "500px",
+                                                    width: "500px",
+                                                    maxHeight: "32px"
+                                                }}
+                                            >
+                                                Download All Logs As CSV
+                                            </div>
+                                        </div>
+                                    </HeaderTitleArea>
+                                </CustomHeader>
+                                <PanelContent>
+                                    <div className="date-picker-excel">
+                                        <label htmlFor="date-picker" className="team-lable">From Date: </label>
+                                        <DatePicker
+                                            autoFocus={true}
+                                            maxDate={new Date()}
+                                            className="date-picker-input"
+                                            id="date-picker"
+                                            selected={this.state.startDate}
+                                            onChange={this.handleStartDateChange}
+                                            timeIntervals={1}
+                                            dateFormat="MMMM d, yyyy"
+                                        />
+
+                                        <label htmlFor="date-picker" className="team-lable">To Date: </label>
+                                        <DatePicker
+                                            maxDate={new Date()}
+                                            className="date-picker-input"
+                                            id="date-picker"
+                                            selected={this.state.selectedDate}
+                                            onChange={this.handleDateChange}   
+                                            timeIntervals={1}
+                                            dateFormat="MMMM d, yyyy"
+                                        />
+                                    </div>
+                                </PanelContent>
+                                <PanelFooter showSeparator className="body-m">
+                                    <Button text="Download" iconProps={{ iconName: "Download" }} onClick={this.onDownloadExcel}/>
+                                </PanelFooter>
+                            </CustomDialog>
+                        ) : null;
+                    }}
+                </Observer>
                     </div>
                 </Page>
             </div>
@@ -304,6 +419,12 @@ class WorkItemAdminConponent extends React.Component<{}, WorkItemFormGroupCompon
                 console.log(error)
             });
         }
+    }
+
+    private formatDate(dateString: Date) {
+        const date = new Date(dateString);
+        const options: Intl.DateTimeFormatOptions = { month: '2-digit', day: '2-digit', year: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
     }
 
     private onClickSave = async () =>{

@@ -35,10 +35,34 @@
 .admin-work-type-list{
     margin-top: 30px;
 }
+
 .trash-icon{
     color: rgb(255, 66, 66);
     font-size: 20px;
     cursor: pointer;
     margin: 10px 0;
     line-height: 0;
+}
+
+.bolt-dialog-callout-content {
+    margin: 16px;
+    border-radius: 6px;
+    overflow: hidden;
+    width: 625px;
+    height: 501px;
+}
+
+.team-lable{
+    height: 30px;
+}
+.react-datepicker-wrapper {
+    display: inline-block;
+    padding: 0;
+    border: 0;
+    height: 30px;
+}
+.date-picker-excel{
+    display: flex; justify-content: center; flex-wrap: nowrap;
+    margin-top: 15px;
+    .team-lable{ margin-left: 15px;}
 }

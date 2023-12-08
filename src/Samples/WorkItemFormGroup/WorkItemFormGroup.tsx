@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useMemo } from 'react';
+import React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import DatePicker from "react-datepicker";
 
@@ -29,7 +28,6 @@ import { IWorkItemLoadedArgs } from "azure-devops-extension-api/WorkItemTracking
 import { toast } from 'react-toastify';
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { useTable, usePagination } from "react-table";
-import Pagination from "./Pagination";
 
 interface WorkItemFormGroupComponentState {
   dateValue: Date;
@@ -44,8 +42,6 @@ interface WorkItemFormGroupComponentState {
   selectedTeam?: any;
   allWorkLogs: any;
   isLoading: boolean
-  currentPage?: any;
-  setCurrentPage?: any;
 }
 
 interface IListBoxItemWithId<T> extends IListBoxItem<T> {
@@ -63,8 +59,7 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
       selectedDate: new Date(),
       workType: [],   
       allWorkLogs: [],
-      isLoading : false,   
-      currentPage : 1
+      isLoading : false   
     };
   }
 
@@ -134,13 +129,11 @@ export class WorkItemFormGroupComponent extends React.Component<{}, WorkItemForm
             host: SDK.getHost()
          });
          axios.post(`${API_BASE_URL}/workType/getAllWorkType/${this.state.host.name}`, { headers }).then(response => {
-             const workType = response.data['data'];
-     
+             const workType = response.data['data'];     
              const workTypeWithStringIds = workType.map((workType: any) => ({
                  ...workType,
                  id: workType.id.toString()
-             }));
-     
+             }));     
              this.setState({ workType: workTypeWithStringIds });
          })
          .catch(error => {
@@ -171,7 +164,6 @@ private fetchTaskById = async (taskId: number) => {
     const baseUrl = `https://dev.azure.com/${this.state.host.name}/${project.id}/_apis/wit/workitems/${Id}?api-version=7.1-preview.3`;
     const response = await axios.get(baseUrl, { headers });
     const selectedTask = response;
-    console.log("Response__: ", response.data)
     this.setState({taskDetails : selectedTask.data})
   } catch (error) {
     console.error(`Error fetching task with ID ${taskId}:`, error);
@@ -181,29 +173,22 @@ private fetchTaskById = async (taskId: number) => {
 private onClickTrash = async (tableItem: ITableItem) => {
   const isConfirmed = window.confirm("Are you sure you want to delete this log?");
 
-  if (isConfirmed) {
-    try {
-      const response = await axios.delete(`${API_BASE_URL}/timelogs/{id}?id=${tableItem.id}`);
-      toast.success('Work type deleted successfully');
-      this.getAllWorkLogs();
-    } catch (error) {
-      console.error(error);
+    if (isConfirmed) {
+      try {
+        const response = await axios.delete(`${API_BASE_URL}/timelogs/{id}?id=${tableItem.id}`);
+        toast.success('Work type deleted successfully');
+        this.getAllWorkLogs();
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.log("Deletion canceled");
     }
-  } else {
-    console.log("Deletion canceled");
-  }
-};
-
-  private setCurrentPage = (newPage:any) => {
-    this.setState({ currentPage: newPage });
   };
-  
 
   public render(): JSX.Element {
-    const currentPage = this.state.currentPage;
-
     const { workType, allWorkLogs } = this.state;
-      const formattedWorkTypes: ITableItem[] = allWorkLogs.map((item: any) => ({
+    const formattedWorkTypes: ITableItem[] = allWorkLogs.map((item: any) => ({
       time: item.time,
       user: {text: item.user},
       date: item.date,
@@ -211,17 +196,7 @@ private onClickTrash = async (tableItem: ITableItem) => {
       comment: item.comment,
       id: item.id
     }));    
-
-    let PageSize = 8;
-    let itemProvider = new ArrayItemProvider<ITableItem>(formattedWorkTypes);
-      if(itemProvider){
-        itemProvider['items'] = useMemo(() => {
-          const firstPageIndex = (currentPage - 1) * PageSize;
-          const lastPageIndex = firstPageIndex + PageSize;
-          return itemProvider['items'].slice(firstPageIndex, lastPageIndex);
-        }, [currentPage]);
-        console.log("Item provider__: ", itemProvider)
-      }
+        const itemProvider = new ArrayItemProvider<ITableItem>(formattedWorkTypes);
 
         if ((!workType) || (!allWorkLogs)) {
             return <div className="flex-row">
@@ -353,7 +328,7 @@ private onClickTrash = async (tableItem: ITableItem) => {
             <Button className="add-time-log-btn" text="Add" iconProps={{ iconName: "Add" }} onClick={this.onAddData}/>
         </div>
 
-        {itemProvider && <div className="time-logs-list">
+        <div className="time-logs-list">
           <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
             <Table<ITableItem> 
               ariaLabel="Table with sorting"
@@ -364,14 +339,16 @@ private onClickTrash = async (tableItem: ITableItem) => {
               role="table"
             />
           </Card>
-          <Pagination
-          className="pagination-bar"
-          currentPage={currentPage}
-          totalCount={itemProvider.length}
-          pageSize={PageSize}
-          onPageChange={(page: any) => this.setCurrentPage(page)}
-        />
-        </div>}
+        </div>
+        {/* <div className="pagination">
+          <button>&lt;</button>
+          <button className="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <button>5</button>
+          <button>&gt;</button>
+        </div> */}
         {this.state.isLoading && <Spinner className="spinner" size={SpinnerSize.medium} />}
       </div>
     );
@@ -418,7 +395,6 @@ private onClickTrash = async (tableItem: ITableItem) => {
         day: '2-digit'
       });
 
-      console.log("Project__: ", project)
       const req = {
         comment: this.comment.value,
         date: dateString,

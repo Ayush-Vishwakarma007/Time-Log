@@ -2,6 +2,7 @@ import * as React from "react";
 import classnames from 'classnames';
 import { usePagination, DOTS } from './usePagination';
 import './pagination.scss';
+
 const Pagination = (props:any) => {
   const {
     onPageChange,

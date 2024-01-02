@@ -137,7 +137,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     
 
     private handleStartDateChange = (date: Date) => {
-        const endDate = this.calculateEndDate(date);
+        // const endDate = this.calculateEndDate(date);
         this.setState({
           startDate: date,
         });
@@ -148,6 +148,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
       };
       
       private calculateEndDate = (endDate: Date) => {
+        console.log("End date__: ", endDate)
         // const endDate = new Date(endDate);
         this.setState({endDate})
         // endDate.setDate(1);
@@ -305,8 +306,8 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                                 maxDate={new Date()}
                                 className="date-picker-input"
                                 id="date-picker"
-                                selected={this.state.selectedDate}
-                                onChange={this.handleDateChange}   
+                                selected={this.state.endDate}
+                                onChange={this.calculateEndDate}   
                                 timeIntervals={1}
                                 dateFormat="MMMM d, yyyy"
                             />

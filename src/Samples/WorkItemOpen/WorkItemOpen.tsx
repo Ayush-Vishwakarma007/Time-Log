@@ -137,7 +137,6 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
     
 
     private handleStartDateChange = (date: Date) => {
-        // const endDate = this.calculateEndDate(date);
         this.setState({
           startDate: date,
         });
@@ -149,12 +148,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
       
       private calculateEndDate = (endDate: Date) => {
         console.log("End date__: ", endDate)
-        // const endDate = new Date(endDate);
         this.setState({endDate})
-        // endDate.setDate(1);
-        // endDate.setMonth(endDate.getMonth() + 1);
-        // endDate.setDate(endDate.getDate() - 1);
-        // return endDate;
       };
     
     private handleEndDateChange = (date: Date) => {
@@ -170,7 +164,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         const { teamData, allUsers, currentUser, userLogs, isLoading } = this.state;
         
         let pivotTableData = userLogs;
-        const rows = ['User', 'Project', 'Task', 'Work Type'];
+        const rows = ['User', 'Project', 'Id/Task', 'Work Type'];
 
         if ((!teamData)) {
             return <div className="flex-row">
@@ -184,28 +178,33 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
             return `${formattedHours}:${formattedMinutes}`;
         };
           
-          const aggregators = {
+        const aggregators = {
             timeAggregator: (attributeArray: any) => {
-                return function (data: any, rowKey: any, colKey: any) {
-                    let totalHours = 0;
-                    let totalMinutes = 0;
-                
-                    return {
-                      push: function (record: { hours: string; min: string; }) {
-                        totalHours += parseInt(record.hours);
-                        totalMinutes += parseInt(record.min);
-                      },
-                      value: function () {
-                        return formatTime(totalHours, totalMinutes);
-                      },
-                      format: function (x: any) {
-                        return x;
-                      },
-                      numInputs: 0,
-                    };
-                  };
+              return function (data: any, rowKey: any, colKey: any) {
+                let totalHours = 0;
+                let totalMinutes = 0;
+          
+                return {
+                  push: function (record: { hours: string; min: string; }) {
+                    totalHours += parseInt(record.hours);
+                    totalMinutes += parseInt(record.min);
+                  },
+                  value: function () {
+                    // Convert excess minutes to hours
+                    totalHours += Math.floor(totalMinutes / 60);
+                    totalMinutes = totalMinutes % 60;
+                    console.log("minutes__: ", totalMinutes)
+                    return formatTime(totalHours, totalMinutes);
+                  },
+                  format: function (x: any) {
+                    return x;
+                  },
+                  numInputs: 0,
+                };
+              };
             },
           };
+          
 
         if(pivotTableData){
             pivotTableData = pivotTableData.map((item:any) => ({

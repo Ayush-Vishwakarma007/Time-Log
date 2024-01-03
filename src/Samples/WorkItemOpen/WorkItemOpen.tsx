@@ -164,7 +164,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
         const { teamData, allUsers, currentUser, userLogs, isLoading } = this.state;
         
         let pivotTableData = userLogs;
-        const rows = ['User', 'Project', 'Id/Task', 'Work Type'];
+        const rows = ['User', 'Project', 'ID Task', 'Work Type'];
 
         if ((!teamData)) {
             return <div className="flex-row">
@@ -283,7 +283,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                             width={TextFieldWidth.standard}
                             disabled ={ true}
                             />
-                            <label htmlFor="team-dropdown" className="team-lable">Project User: </label>
+                            <label htmlFor="team-dropdown" className="team-lable">User: </label>
                             <Dropdown ariaLabel="Basic" className="team-dropdown" inputId="team-dropdown" placeholder="Select Team User"
                                 items={allUsers.map((team:any) => ({
                                     id: team['identity'].id,
@@ -360,7 +360,7 @@ class WorkItemOpenContent extends React.Component<{}, WorkItemFormGroupComponent
                                 const rowData: any = {
                                     User: userLog.userName || '', 
                                     Project: userLog.projectName || '', 
-                                    Task: workItemLog.workItem || '', 
+                                    'ID Task': workItemLog.workItem || '', 
                                     'Work Type': workTypeLog.workType || '', 
                                     Week: dayWise.startDate || '',
                                     Days: `${dayWise.loggedDay} ${dayWise.loggedWeekDay.substring(0,3)}`,
